@@ -194,12 +194,9 @@ const Header = () => {
                   <Link href="/mi-cuenta">Mi Cuenta</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/mis-cursos">Mis Cursos</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link href="/mis-ordenes">Mis Órdenes</Link>
                 </DropdownMenuItem>
-                {(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') && (
+                {(user?.role === 'OWNER' || user?.role === 'SUPER_ADMIN') && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -351,10 +348,10 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/mis-cursos"
+                  href="/mis-ordenes"
                   className="text-muted-foreground hover:text-foreground"
                 >
-                  Mis Cursos
+                  Mis Órdenes
                 </Link>
               </li>
               <li>
@@ -474,7 +471,7 @@ export default function DashboardLayout({
       redirect('/auth/login');
     }
 
-    if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') {
+    if (user?.role !== 'OWNER' && user?.role !== 'SUPER_ADMIN') {
       redirect('/');
     }
   }, [isAuthenticated, user]);

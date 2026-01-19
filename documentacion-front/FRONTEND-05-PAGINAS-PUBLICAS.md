@@ -200,7 +200,8 @@ export default function CoursesPage() {
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const matchesCategory =
-      selectedCategory === 'all' || course.categoryId === selectedCategory;
+      selectedCategory === 'all' ||
+      course.categories?.some((category) => category.id === selectedCategory);
     return matchesSearch && matchesCategory;
   });
 
@@ -301,30 +302,26 @@ interface CourseCardProps {
   course: Course;
 }
 
-const CourseLevelBadge = ({ level }: { level: string }) => {
+const CourseLevelBadge = ({ level }: { level?: string | null }) => {
+  if (!level) return null;
+
   const variants: Record<string, string> = {
-    BEGINNER: 'bg-green-100 text-green-800',
-    INTERMEDIATE: 'bg-yellow-100 text-yellow-800',
-    ADVANCED: 'bg-red-100 text-red-800',
+    Principiante: 'bg-green-100 text-green-800',
+    Intermedio: 'bg-yellow-100 text-yellow-800',
+    Avanzado: 'bg-red-100 text-red-800',
   };
 
-  const labels: Record<string, string> = {
-    BEGINNER: 'Principiante',
-    INTERMEDIATE: 'Intermedio',
-    ADVANCED: 'Avanzado',
-  };
-
-  return (
-    <Badge className={variants[level] || ''}>{labels[level] || level}</Badge>
-  );
+  return <Badge className={variants[level] || ''}>{level}</Badge>;
 };
 
 const CourseCard = ({ course }: CourseCardProps) => {
-  const thumbnailUrl = course.thumbnail
-    ? `${process.env.NEXT_PUBLIC_API_URL}${course.thumbnail}`
+  const thumbnailUrl = course.thumbnailUrl
+    ? `${process.env.NEXT_PUBLIC_API_URL}${course.thumbnailUrl}`
     : '/images/placeholder-course.jpg';
 
-  const durationInHours = Math.floor(course.duration / 3600);
+  const durationInHours = course.duration
+    ? Math.ceil(course.duration / 60)
+    : 0;
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
@@ -342,9 +339,9 @@ const CourseCard = ({ course }: CourseCardProps) => {
       <CardContent className="p-4">
         <div className="mb-2 flex items-center justify-between">
           <CourseLevelBadge level={course.level} />
-          {course.category && (
+          {course.categories?.[0] && (
             <span className="text-xs text-muted-foreground">
-              {course.category.name}
+              {course.categories[0].name}
             </span>
           )}
         </div>
@@ -356,7 +353,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
         </Link>
 
         <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
-          {course.description}
+          {course.shortDescription}
         </p>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -366,7 +363,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
           <div className="flex items-center gap-1">
             <BarChart className="h-4 w-4" />
-            <span>{course.lessons?.length || 0} lecciones</span>
+            <span>{course.modulesCount || 0} módulos</span>
           </div>
         </div>
       </CardContent>
@@ -434,15 +431,15 @@ export default function CourseDetailPage({
     );
   }
 
-  const thumbnailUrl = course.thumbnail
-    ? `${process.env.NEXT_PUBLIC_API_URL}${course.thumbnail}`
+  const thumbnailUrl = course.thumbnailUrl
+    ? `${process.env.NEXT_PUBLIC_API_URL}${course.thumbnailUrl}`
     : '/images/placeholder-course.jpg';
 
-  const videoPreviewUrl = course.videoPreview
-    ? `${process.env.NEXT_PUBLIC_API_URL}${course.videoPreview}`
+  const videoPreviewUrl = course.previewVideoUrl
+    ? `${process.env.NEXT_PUBLIC_API_URL}${course.previewVideoUrl}`
     : null;
 
-  const durationInHours = Math.floor(course.duration / 3600);
+  const durationInHours = course.duration ? Math.ceil(course.duration / 60) : 0;
 
   const handleAddToCart = () => {
     if (!isAuthenticated) {
@@ -476,12 +473,10 @@ export default function CourseDetailPage({
           {/* Course Info */}
           <div className="mb-8">
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{course.category?.name}</Badge>
-              <Badge>
-                {course.level === 'BEGINNER' && 'Principiante'}
-                {course.level === 'INTERMEDIATE' && 'Intermedio'}
-                {course.level === 'ADVANCED' && 'Avanzado'}
-              </Badge>
+              {course.categories?.[0] && (
+                <Badge variant="secondary">{course.categories[0].name}</Badge>
+              )}
+              {course.level && <Badge>{course.level}</Badge>}
             </div>
 
             <h1 className="mb-4 text-3xl font-bold md:text-4xl">
@@ -489,7 +484,7 @@ export default function CourseDetailPage({
             </h1>
 
             <p className="text-lg text-muted-foreground">
-              {course.description}
+              {course.longDescription}
             </p>
           </div>
 
@@ -514,7 +509,7 @@ export default function CourseDetailPage({
                 <BarChart className="h-8 w-8 text-primary" />
                 <div>
                   <div className="text-2xl font-bold">
-                    {course.lessons?.length || 0}
+                    {course.lessonsCount || 0}
                   </div>
                   <div className="text-sm text-muted-foreground">Lecciones</div>
                 </div>
@@ -536,36 +531,40 @@ export default function CourseDetailPage({
 
           <Separator className="my-8" />
 
-          {/* Lessons List */}
+          {/* Modules & Lessons List */}
           <div>
             <h2 className="mb-4 text-2xl font-bold">Contenido del Curso</h2>
-            <div className="space-y-2">
-              {course.lessons?.map((lesson, index) => (
-                <Card key={lesson.id}>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <h3 className="font-medium">{lesson.title}</h3>
-                        {lesson.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {lesson.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {lesson.isFree && (
-                        <Badge variant="outline">Gratis</Badge>
-                      )}
-                      <span className="text-sm text-muted-foreground">
-                        {Math.floor(lesson.duration / 60)} min
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="space-y-6">
+              {course.modules?.map((module, moduleIndex) => (
+                <div key={module.id}>
+                  <h3 className="mb-3 text-lg font-semibold">
+                    Módulo {moduleIndex + 1}: {module.title}
+                  </h3>
+                  <div className="space-y-2">
+                    {module.lessons?.map((lesson, lessonIndex) => (
+                      <Card key={lesson.id}>
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                              {lessonIndex + 1}
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{lesson.title}</h3>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {lesson.isFree && (
+                              <Badge variant="outline">Gratis</Badge>
+                            )}
+                            <span className="text-sm text-muted-foreground">
+                              {lesson.duration ?? 0} min
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -880,18 +879,6 @@ const RegisterForm = () => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="birthDate">Fecha de Nacimiento (opcional)</Label>
-        <Input
-          id="birthDate"
-          type="date"
-          {...register('birthDate')}
-        />
-        {errors.birthDate && (
-          <p className="text-sm text-destructive">{errors.birthDate.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="password">Contraseña</Label>
         <Input
           id="password"
@@ -901,21 +888,6 @@ const RegisterForm = () => {
         />
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password.message}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          placeholder="••••••••"
-          {...register('confirmPassword')}
-        />
-        {errors.confirmPassword && (
-          <p className="text-sm text-destructive">
-            {errors.confirmPassword.message}
-          </p>
         )}
       </div>
 
