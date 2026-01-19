@@ -23,8 +23,9 @@ import { User } from '@/types/user';
 interface AuthState {
   user: User | null;
   accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   updateUser: (user: User) => void;
   logout: () => void;
 }
@@ -34,11 +35,13 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
 
-      setAuth: (user, token) => {
-        localStorage.setItem('access_token', token);
-        set({ user, accessToken: token, isAuthenticated: true });
+      setAuth: (user, accessToken, refreshToken) => {
+        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('refresh_token', refreshToken);
+        set({ user, accessToken, refreshToken, isAuthenticated: true });
       },
 
       updateUser: (user) => {
@@ -47,7 +50,13 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('access_token');
-        set({ user: null, accessToken: null, isAuthenticated: false });
+        localStorage.removeItem('refresh_token');
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isAuthenticated: false,
+        });
       },
     }),
     {
@@ -55,6 +64,7 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
     },
@@ -176,7 +186,7 @@ export const useAuth = () => {
     mutationFn: (credentials: LoginCredentials) =>
       authService.login(credentials),
     onSuccess: (data) => {
-      setAuth(data.user, data.accessToken);
+      setAuth(data.user, data.accessToken, data.refreshToken);
       toast.success('Inicio de sesión exitoso');
       router.push('/dashboard');
     },
@@ -188,11 +198,12 @@ export const useAuth = () => {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: (userData: RegisterData) => authService.register(userData),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setAuth(data.user, data.accessToken, data.refreshToken);
       toast.success(
         'Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.',
       );
-      router.push('/auth/login');
+      router.push('/dashboard');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -300,12 +311,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesService } from '@/services/coursesService';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/error-handler';
-import {
-  CreateCourseData,
-  UpdateCourseData,
-  CreateLessonData,
-  UpdateLessonData,
-} from '@/types/course';
+import { CreateCourseData, UpdateCourseData } from '@/types/course';
 import { PaginationParams } from '@/types/api';
 
 export const useCourses = (params?: PaginationParams) => {
@@ -323,20 +329,27 @@ export const useCourses = (params?: PaginationParams) => {
 
   return {
     courses: coursesData?.data || [],
-    meta: coursesData?.meta,
+    meta: coursesData
+      ? {
+          total: coursesData.total,
+          page: coursesData.page,
+          limit: coursesData.limit,
+          totalPages: coursesData.totalPages,
+        }
+      : undefined,
     isLoading,
     error,
   };
 };
 
-export const useCourse = (id: string) => {
+export const useCourse = (id: string, includeModules?: boolean) => {
   const {
     data: course,
     isLoading,
     error,
   } = useQuery({
     queryKey: ['course', id],
-    queryFn: () => coursesService.getCourseById(id),
+    queryFn: () => coursesService.getCourseById(id, includeModules),
     enabled: !!id,
   });
 
@@ -355,6 +368,19 @@ export const useCourseBySlug = (slug: string) => {
   });
 
   return { course, isLoading, error };
+};
+
+export const useFeaturedCourses = (limit?: number) => {
+  const {
+    data: courses,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['courses', 'featured', limit],
+    queryFn: () => coursesService.getFeaturedCourses(limit),
+  });
+
+  return { courses: courses || [], isLoading, error };
 };
 
 export const useCreateCourse = () => {
@@ -405,41 +431,14 @@ export const useDeleteCourse = () => {
   });
 };
 
-// ===== LESSONS HOOKS =====
-
-export const useCourseLessons = (courseId: string) => {
-  const {
-    data: lessons,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['lessons', courseId],
-    queryFn: () => coursesService.getCourseLessons(courseId),
-    enabled: !!courseId,
-  });
-
-  return { lessons: lessons || [], isLoading, error };
-};
-
-export const useCreateLesson = () => {
+export const useTogglePublishCourse = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      courseId,
-      data,
-    }: {
-      courseId: string;
-      data: CreateLessonData;
-    }) => coursesService.createLesson(courseId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['lessons', variables.courseId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['course', variables.courseId],
-      });
-      toast.success('Lección creada exitosamente');
+    mutationFn: (id: string) => coursesService.togglePublish(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success('Estado de publicación actualizado');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -447,27 +446,14 @@ export const useCreateLesson = () => {
   });
 };
 
-export const useUpdateLesson = () => {
+export const useToggleFeaturedCourse = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      courseId,
-      lessonId,
-      data,
-    }: {
-      courseId: string;
-      lessonId: string;
-      data: UpdateLessonData;
-    }) => coursesService.updateLesson(courseId, lessonId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['lessons', variables.courseId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['course', variables.courseId],
-      });
-      toast.success('Lección actualizada exitosamente');
+    mutationFn: (id: string) => coursesService.toggleFeatured(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success('Estado de destacado actualizado');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -475,25 +461,15 @@ export const useUpdateLesson = () => {
   });
 };
 
-export const useDeleteLesson = () => {
+export const useReorderCourses = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      courseId,
-      lessonId,
-    }: {
-      courseId: string;
-      lessonId: string;
-    }) => coursesService.deleteLesson(courseId, lessonId),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['lessons', variables.courseId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['course', variables.courseId],
-      });
-      toast.success('Lección eliminada exitosamente');
+    mutationFn: (orderedIds: string[]) =>
+      coursesService.reorderCourses(orderedIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success('Cursos reordenados');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -503,14 +479,17 @@ export const useDeleteLesson = () => {
 
 // ===== CATEGORIES HOOK =====
 
-export const useCategories = () => {
+export const useCategories = (params?: {
+  includeCoursesCount?: boolean;
+  onlyWithCourses?: boolean;
+}) => {
   const {
     data: categories,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['categories'],
-    queryFn: () => coursesService.getCategories(),
+    queryKey: ['categories', params],
+    queryFn: () => coursesService.getCategories(params),
   });
 
   return { categories: categories || [], isLoading, error };
@@ -546,7 +525,7 @@ export const useCart = () => {
     queryKey: ['cart'],
     queryFn: async () => {
       const cartData = await cartService.getCart();
-      setCartData(cartData.items.length, cartData.total, cartData.discount);
+      setCartData(cartData.itemCount, cartData.total, cartData.discount);
       return cartData;
     },
   });
@@ -565,7 +544,7 @@ export const useCart = () => {
 
   // Remove from cart
   const removeFromCartMutation = useMutation({
-    mutationFn: (itemId: string) => cartService.removeFromCart(itemId),
+    mutationFn: (courseId: string) => cartService.removeFromCart(courseId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
       toast.success('Curso eliminado del carrito');
@@ -611,25 +590,43 @@ export const useCart = () => {
 ```typescript
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { checkoutService } from '@/services/checkoutService';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/error-handler';
-import { CreateOrderData } from '@/types/order';
+import { CheckoutData } from '@/types/checkout';
 
 export const useCheckout = () => {
-  const createPreferenceMutation = useMutation({
-    mutationFn: (orderData: CreateOrderData) =>
-      checkoutService.createMercadoPagoPreference(orderData),
+  const summaryQuery = useQuery({
+    queryKey: ['checkout-summary'],
+    queryFn: () => checkoutService.getSummary(),
+  });
+
+  const createCheckoutMutation = useMutation({
+    mutationFn: (checkoutData: CheckoutData) =>
+      checkoutService.createCheckout(checkoutData),
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  const validateCheckoutMutation = useMutation({
+    mutationFn: (payload: { dni: string; phone: string }) =>
+      checkoutService.validateCheckout(payload),
     onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
 
   return {
-    createPreference: createPreferenceMutation.mutate,
-    isCreatingPreference: createPreferenceMutation.isPending,
-    preferenceData: createPreferenceMutation.data,
+    summary: summaryQuery.data,
+    isLoadingSummary: summaryQuery.isLoading,
+    createCheckout: createCheckoutMutation.mutate,
+    isCreatingCheckout: createCheckoutMutation.isPending,
+    checkoutData: createCheckoutMutation.data,
+    validateCheckout: validateCheckoutMutation.mutate,
+    isValidatingCheckout: validateCheckoutMutation.isPending,
+    validationResult: validateCheckoutMutation.data,
   };
 };
 ```
@@ -643,11 +640,13 @@ export const useCheckout = () => {
 ```typescript
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ordersService } from '@/services/ordersService';
-import { PaginationParams } from '@/types/api';
+import { OrderFilterParams } from '@/types/order';
+import { toast } from 'sonner';
+import { getErrorMessage } from '@/lib/error-handler';
 
-export const useMyOrders = (params?: PaginationParams) => {
+export const useMyOrders = (params?: OrderFilterParams) => {
   const {
     data: ordersData,
     isLoading,
@@ -658,8 +657,15 @@ export const useMyOrders = (params?: PaginationParams) => {
   });
 
   return {
-    orders: ordersData?.data || [],
-    meta: ordersData?.meta,
+    orders: ordersData?.orders || [],
+    meta: ordersData
+      ? {
+          total: ordersData.total,
+          page: ordersData.page,
+          limit: ordersData.limit,
+          totalPages: ordersData.totalPages,
+        }
+      : undefined,
     isLoading,
     error,
   };
@@ -679,7 +685,23 @@ export const useOrder = (id: string) => {
   return { order, isLoading, error };
 };
 
-export const useAllOrders = (params?: PaginationParams) => {
+export const useCancelOrder = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => ordersService.cancelOrder(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['all-orders'] });
+      toast.success('Orden cancelada');
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+};
+
+export const useAllOrders = (params?: OrderFilterParams) => {
   const {
     data: ordersData,
     isLoading,
@@ -690,8 +712,15 @@ export const useAllOrders = (params?: PaginationParams) => {
   });
 
   return {
-    orders: ordersData?.data || [],
-    meta: ordersData?.meta,
+    orders: ordersData?.orders || [],
+    meta: ordersData
+      ? {
+          total: ordersData.total,
+          page: ordersData.page,
+          limit: ordersData.limit,
+          totalPages: ordersData.totalPages,
+        }
+      : undefined,
     isLoading,
     error,
   };
@@ -711,7 +740,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { couponsService } from '@/services/couponsService';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/error-handler';
-import { CreateCouponData, ValidateCouponData } from '@/types/coupon';
+import {
+  CreateCouponData,
+  ValidateCouponData,
+  UpdateCouponData,
+} from '@/types/coupon';
 import { useCartStore } from '@/store/cartStore';
 
 export const useValidateCoupon = () => {
@@ -722,7 +755,7 @@ export const useValidateCoupon = () => {
       couponsService.validateCoupon(data),
     onSuccess: (result, variables) => {
       if (result.valid) {
-        applyCoupon(variables.code, result.discount);
+        applyCoupon(variables.code, result.discountAmount || 0);
         toast.success('Cupón aplicado exitosamente');
       } else {
         toast.error(result.message || 'Cupón inválido');
@@ -744,7 +777,12 @@ export const useAllCoupons = () => {
     queryFn: () => couponsService.getAllCoupons(),
   });
 
-  return { coupons: coupons || [], isLoading, error };
+  return {
+    coupons: coupons?.coupons || [],
+    total: coupons?.total,
+    isLoading,
+    error,
+  };
 };
 
 export const useCreateCoupon = () => {
@@ -777,91 +815,39 @@ export const useDeleteCoupon = () => {
   });
 };
 
-export const useToggleCoupon = () => {
+export const useUpdateCoupon = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => couponsService.toggleCoupon(id),
+    mutationFn: ({ id, data }: { id: string; data: UpdateCouponData }) =>
+      couponsService.updateCoupon(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coupons'] });
-      toast.success('Estado del cupón actualizado');
+      toast.success('Cupón actualizado');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
     },
   });
 };
-```
 
----
-
-## 🔟 Custom Hooks - useEnrollments
-
-### `src/hooks/useEnrollments.ts`
-
-```typescript
-'use client';
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { enrollmentsService } from '@/services/enrollmentsService';
-import { toast } from 'sonner';
-import { getErrorMessage } from '@/lib/error-handler';
-import { UpdateLessonProgressData } from '@/types/enrollment';
-
-export const useMyEnrollments = () => {
+export const useCouponStats = () => {
   const {
-    data: enrollments,
+    data: stats,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['my-enrollments'],
-    queryFn: () => enrollmentsService.getMyEnrollments(),
+    queryKey: ['coupons-stats'],
+    queryFn: () => couponsService.getStats(),
   });
 
-  return { enrollments: enrollments || [], isLoading, error };
-};
-
-export const useEnrollment = (id: string) => {
-  const {
-    data: enrollment,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['enrollment', id],
-    queryFn: () => enrollmentsService.getEnrollmentById(id),
-    enabled: !!id,
-  });
-
-  return { enrollment, isLoading, error };
-};
-
-export const useUpdateLessonProgress = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      enrollmentId,
-      data,
-    }: {
-      enrollmentId: string;
-      data: UpdateLessonProgressData;
-    }) => enrollmentsService.updateLessonProgress(enrollmentId, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['enrollment', variables.enrollmentId],
-      });
-      queryClient.invalidateQueries({ queryKey: ['my-enrollments'] });
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error));
-    },
-  });
+  return { stats, isLoading, error };
 };
 ```
 
 ---
 
-## 1️⃣1️⃣ Custom Hooks - useUsers (Admin)
+## 🔟 Custom Hooks - useUsers (Admin)
 
 ### `src/hooks/useUsers.ts`
 
@@ -886,7 +872,14 @@ export const useAllUsers = (params?: PaginationParams) => {
 
   return {
     users: usersData?.data || [],
-    meta: usersData?.meta,
+    meta: usersData
+      ? {
+          total: usersData.total,
+          page: usersData.page,
+          limit: usersData.limit,
+          totalPages: usersData.totalPages,
+        }
+      : undefined,
     isLoading,
     error,
   };
@@ -941,7 +934,7 @@ export const useDeleteUser = () => {
 
 ---
 
-## 1️⃣2️⃣ Custom Hooks - useEmails (Admin)
+## 1️⃣1️⃣ Custom Hooks - useEmails (Admin)
 
 ### `src/hooks/useEmails.ts`
 
@@ -953,7 +946,7 @@ import { emailsService } from '@/services/emailsService';
 import { toast } from 'sonner';
 import { getErrorMessage } from '@/lib/error-handler';
 import { PaginationParams } from '@/types/api';
-import { UpdateEmailConfigData } from '@/types/email';
+import { UpdateEmailConfigData, EmailType } from '@/types/email';
 
 export const useEmailLogs = (params?: PaginationParams) => {
   const {
@@ -967,7 +960,14 @@ export const useEmailLogs = (params?: PaginationParams) => {
 
   return {
     logs: logsData?.data || [],
-    meta: logsData?.meta,
+    meta: logsData
+      ? {
+          total: logsData.total,
+          page: logsData.page,
+          limit: logsData.limit,
+          totalPages: logsData.totalPages,
+        }
+      : undefined,
     isLoading,
     error,
   };
@@ -1001,50 +1001,39 @@ export const useUpdateEmailConfig = () => {
     },
   });
 };
-```
 
----
-
-## 1️⃣3️⃣ Custom Hooks - useDashboard (Admin)
-
-### `src/hooks/useDashboard.ts`
-
-```typescript
-'use client';
-
-import { useQuery } from '@tanstack/react-query';
-import { dashboardService } from '@/services/dashboardService';
-
-export const useDashboardStats = () => {
+export const useEmailStats = () => {
   const {
     data: stats,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: () => dashboardService.getStats(),
+    queryKey: ['email-stats'],
+    queryFn: () => emailsService.getEmailStats(),
   });
 
   return { stats, isLoading, error };
 };
 
-export const useSalesData = (days: number = 30) => {
-  const {
-    data: salesData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['sales-data', days],
-    queryFn: () => dashboardService.getSalesData(days),
+export const useSendTestEmail = () => {
+  return useMutation({
+    mutationFn: (payload: { to: string; type: EmailType }) =>
+      emailsService.sendTestEmail(payload),
+    onSuccess: () => {
+      toast.success('Email de prueba enviado');
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
   });
-
-  return { salesData: salesData || [], isLoading, error };
 };
 ```
 
 ---
 
-## 1️⃣4️⃣ Custom Hooks - Utilidades UI
+---
+
+## 1️⃣2️⃣ Custom Hooks - Utilidades UI
 
 ### `src/hooks/useToast.ts`
 
@@ -1172,7 +1161,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
 ---
 
-## 1️⃣5️⃣ Configurar Toast Provider
+## 1️⃣3️⃣ Configurar Toast Provider
 
 ### Instalar Sonner
 
@@ -1237,10 +1226,8 @@ Verificar que todos los archivos estén creados:
 - [ ] `src/hooks/useCheckout.ts`
 - [ ] `src/hooks/useOrders.ts`
 - [ ] `src/hooks/useCoupons.ts`
-- [ ] `src/hooks/useEnrollments.ts`
 - [ ] `src/hooks/useUsers.ts`
 - [ ] `src/hooks/useEmails.ts`
-- [ ] `src/hooks/useDashboard.ts`
 
 ### Custom Hooks - Utilidades
 
@@ -1275,7 +1262,7 @@ npm run dev
 En esta fase hemos creado:
 
 1. **3 Zustand Stores** para estado global (Auth, Cart, UI)
-2. **10 grupos de custom hooks** para data fetching con React Query
+2. **8 grupos de custom hooks** para data fetching con React Query
 3. **4 hooks de utilidad** para UI (toast, debounce, media query, localStorage)
 4. **Persistencia de estado** con Zustand persist
 5. **Sistema de notificaciones** con Sonner
@@ -1346,8 +1333,8 @@ export default function CartPage() {
       <h1>Mi Carrito ({cart?.items.length})</h1>
       {cart?.items.map((item) => (
         <div key={item.id}>
-          <h3>{item.course?.title}</h3>
-          <button onClick={() => removeFromCart(item.id)}>Eliminar</button>
+          <h3>{item.courseTitle}</h3>
+          <button onClick={() => removeFromCart(item.courseId)}>Eliminar</button>
         </div>
       ))}
       <button onClick={clearCart}>Vaciar Carrito</button>
