@@ -12,7 +12,7 @@ export function Providers({ children }: PropsWithChildren) {
   return (
     <QueryClientProvider client={client}>
       {children}
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors closeButton />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
