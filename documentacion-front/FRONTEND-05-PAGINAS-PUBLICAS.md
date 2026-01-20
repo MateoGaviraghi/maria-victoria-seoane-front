@@ -18,115 +18,88 @@ En esta fase vamos a:
 ### `src/app/(public)/page.tsx`
 
 ```typescript
+'use client';
+
+import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, Users, Award, TrendingUp } from 'lucide-react';
+import { ArrowRight, Users, Briefcase, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import PublicHeader from '@/components/layout/PublicHeader';
+import PublicFooter from '@/components/layout/PublicFooter';
 
 export default function HomePage() {
-  const features = [
+  const audience = [
     {
-      icon: BookOpen,
-      title: 'Cursos de Calidad',
-      description: 'Aprende con contenido actualizado y de alta calidad',
+      icon: Briefcase,
+      title: 'Equipos de campaña',
+      description: 'Directores, integrantes o participantes de campañas electorales.',
     },
     {
       icon: Users,
-      title: 'Instructores Expertos',
-      description: 'Profesionales con años de experiencia en la industria',
+      title: 'Candidatos/as',
+      description: 'En todas las esferas, legislativas, ejecutivas, locales, provinciales y nacionales.',
     },
     {
-      icon: Award,
-      title: 'Certificados',
-      description: 'Obtén certificados al completar tus cursos',
+      icon: Layers,
+      title: 'Amantes de la ComPol',
+      description: 'Estudiantes, profesores o entusiastas de la comunicación política.',
     },
-    {
-      icon: TrendingUp,
-      title: 'Crece Profesionalmente',
-      description: 'Desarrolla habilidades que impulsan tu carrera',
-    },
-  ];
-
-  const stats = [
-    { label: 'Estudiantes', value: '10,000+' },
-    { label: 'Cursos', value: '100+' },
-    { label: 'Instructores', value: '50+' },
-    { label: 'Satisfacción', value: '98%' },
   ];
 
   return (
-    <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-primary/10 to-background py-20 md:py-32">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Aprende Habilidades que Impulsan tu{' '}
-              <span className="text-primary">Futuro</span>
+    <div className="flex min-h-screen flex-col bg-[#F4E9CD] text-[#031926]">
+      <PublicHeader />
+
+      {/* Hero */}
+      <section
+        className="relative isolate overflow-hidden"
+        style={{ backgroundImage: "url('/home/hero.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}
+      >
+        <div className="absolute inset-0 bg-[#031926]/70" />
+        <div className="container relative z-10 py-20 md:py-28">
+          <div className="max-w-3xl">
+            <h1 className="mb-4 text-4xl font-bold tracking-tight text-[#F4E9CD] md:text-5xl">
+              Curso de Oratoria y Media Training
             </h1>
-            <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-              Accede a cursos online de alta calidad impartidos por expertos.
-              Aprende a tu ritmo y alcanza tus metas profesionales.
+            <p className="mb-8 text-lg text-[#F4E9CD]/90">
+              Este curso ha sido diseñado para ayudarte a desarrollar habilidades efectivas de comunicación verbal y no verbal, así como también mejorar tu capacidad de presentación en público y manejo de los medios de comunicación.
+              <br />
+              Durante el curso, aprenderás técnicas para vencer el miedo escénico, comunicar con claridad y persuasión, utilizar tu lenguaje corporal de manera efectiva, entre otros aspectos esenciales para lograr una excelente presentación en público.
             </p>
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button size="lg" asChild>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button className="bg-[#77ACA2] text-[#031926] hover:bg-[#9DBEBB]" asChild>
                 <Link href="/cursos">
-                  Explorar Cursos
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  Quiero el curso
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/auth/register">Comenzar Gratis</Link>
+              <Button variant="outline" className="border-[#F4E9CD] text-[#F4E9CD] hover:bg-[#F4E9CD] hover:text-[#031926]" asChild>
+                <Link href="/auth/register">Registrarme</Link>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="border-y bg-muted/50 py-12">
+      {/* Para quién es este curso */}
+      <section className="bg-[#F4E9CD] py-16">
         <div className="container">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="mb-2 text-3xl font-bold text-primary md:text-4xl">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-bold">Para quién es este curso</h2>
+            <p className="mt-2 text-[#468189]">Registrate y accede a todos los cursos disponibles.</p>
           </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20">
-        <div className="container">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-              ¿Por qué elegirnos?
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Descubre las ventajas de aprender con nosotros
-            </p>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => {
-              const Icon = feature.icon;
+          <div className="grid gap-6 md:grid-cols-3">
+            {audience.map((item) => {
+              const Icon = item.icon;
               return (
-                <Card key={feature.title}>
-                  <CardContent className="pt-6">
-                    <div className="mb-4 inline-flex rounded-lg bg-primary/10 p-3">
-                      <Icon className="h-6 w-6 text-primary" />
+                <Card key={item.title} className="border-[#9DBEBB]/40">
+                  <CardContent className="p-6 text-center">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#031926]">
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <h3 className="mb-2 text-xl font-semibold">
-                      {feature.title}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {feature.description}
-                    </p>
+                    <h3 className="mb-2 text-lg font-semibold">{item.title}</h3>
+                    <p className="text-sm text-[#468189]">{item.description}</p>
                   </CardContent>
                 </Card>
               );
@@ -135,29 +108,145 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-primary py-20 text-primary-foreground">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-              Comienza tu viaje de aprendizaje hoy
+      {/* Conoce a la cliente */}
+      <section className="bg-[#9DBEBB] py-16">
+        <div className="container grid gap-10 md:grid-cols-2 md:items-center">
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#F4E9CD]">
+            <Image
+              src="/home/cliente.jpg"
+              alt="María Victoria Seoane"
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div>
+            <div className="mb-3 inline-block rounded-full bg-[#031926] px-3 py-1 text-xs font-semibold text-[#F4E9CD]">
+              APRENDE SOBRE CÓMO COMUNICARTE
+            </div>
+            <h2 className="mb-4 text-3xl font-bold text-[#031926]">
+              Curso de oratoria y media training.
             </h2>
-            <p className="mb-8 text-lg opacity-90">
-              Únete a miles de estudiantes que ya están transformando sus
-              carreras
+            <p className="text-[#031926]">
+              La docente María Victoria Seoane tiene 20 años de experiencia en el sector. Sostiene que la oratoria y el entrenamiento para hablar en público o en redes sociales son clave para los candidatos y funcionarios políticos. Todo lo que decimos con nuestro cuerpo es esencial a quienes nos escuchan y ven nuestro contenido, aprender a demostrar y enviar las señales adecuadas a nuestro público es muy importante.
             </p>
-            <Button size="lg" variant="secondary" asChild>
-              <Link href="/auth/register">
-                Registrarse Gratis
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
+            <Button className="mt-6 bg-[#031926] text-[#F4E9CD] hover:bg-[#468189]" asChild>
+              <Link href="/cursos">Quiero el curso</Link>
             </Button>
           </div>
         </div>
       </section>
+
+      <PublicFooter />
     </div>
   );
 }
+```
+
+---
+
+## 🧩 Componente PublicHeader
+
+### `src/components/layout/PublicHeader.tsx`
+
+```typescript
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+
+const PublicHeader = () => {
+  const { user, isAuthenticated } = useAuth();
+
+  return (
+    <header className="bg-[#031926] text-[#F4E9CD]">
+      <div className="container flex items-center justify-between py-4">
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/diseño-web/logo.png"
+            alt="María Victoria Seoane"
+            width={140}
+            height={40}
+          />
+        </Link>
+
+        <div className="flex items-center gap-3">
+          {isAuthenticated ? (
+            <span className="text-sm font-medium">
+              {user?.firstName} {user?.lastName}
+            </span>
+          ) : (
+            <>
+              <Button variant="ghost" className="text-[#F4E9CD]" asChild>
+                <Link href="/auth/login">Iniciar sesión</Link>
+              </Button>
+              <Button className="bg-[#77ACA2] text-[#031926] hover:bg-[#9DBEBB]" asChild>
+                <Link href="/auth/register">Registrarse</Link>
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default PublicHeader;
+```
+
+---
+
+## 🧩 Componente PublicFooter
+
+### `src/components/layout/PublicFooter.tsx`
+
+```typescript
+import Image from 'next/image';
+import Link from 'next/link';
+import { Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
+
+const PublicFooter = () => {
+  return (
+    <footer className="mt-auto bg-[#031926] text-[#F4E9CD]">
+      <div className="container grid gap-8 py-12 md:grid-cols-3">
+        <div>
+          <Image
+            src="/diseño-web/logo.png"
+            alt="María Victoria Seoane"
+            width={160}
+            height={44}
+          />
+          <p className="mt-3 text-sm text-[#9DBEBB]">
+            Formación en comunicación política y media training.
+          </p>
+        </div>
+        <div>
+          <h3 className="mb-3 text-sm font-semibold">Navegación</h3>
+          <ul className="space-y-2 text-sm text-[#9DBEBB]">
+            <li><Link href="/cursos">Cursos</Link></li>
+            <li><Link href="/auth/login">Iniciar sesión</Link></li>
+            <li><Link href="/auth/register">Registrarse</Link></li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="mb-3 text-sm font-semibold">Seguinos</h3>
+          <div className="flex items-center gap-4 text-[#F4E9CD]">
+            <Link href="#" aria-label="Instagram"><Instagram className="h-5 w-5" /></Link>
+            <Link href="#" aria-label="Facebook"><Facebook className="h-5 w-5" /></Link>
+            <Link href="#" aria-label="Twitter"><Twitter className="h-5 w-5" /></Link>
+            <Link href="#" aria-label="YouTube"><Youtube className="h-5 w-5" /></Link>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-[#468189]/40 py-4 text-center text-xs text-[#9DBEBB]">
+        © {new Date().getFullYear()} María Victoria Seoane. Todos los derechos reservados.
+      </div>
+    </footer>
+  );
+};
+
+export default PublicFooter;
 ```
 
 ---

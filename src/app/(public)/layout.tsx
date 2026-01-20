@@ -1,12 +1,12 @@
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import PublicHeader from '@/components/layout/PublicHeader';
+import PublicFooter from '@/components/layout/PublicFooter';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <PublicHeader />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <PublicFooter />
     </div>
   );
 }
