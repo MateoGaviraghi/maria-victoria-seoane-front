@@ -23,14 +23,18 @@ const PublicHeader = () => {
             alt="María Victoria Seoane"
             width={160}
             height={48}
+            style={{ height: 'auto' }}
           />
         </Link>
 
         {/* Botón Cursos (centro) */}
         <nav className="absolute left-1/2 -translate-x-1/2">
-          <button className="relative inline-block cursor-default py-2 text-base text-[#F4E9CD] after:absolute after:bottom-1 after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:bg-[#F4E9CD] after:transition-all after:duration-300 hover:after:w-[calc(100%-1rem)]">
+          <Link
+            href="/cursos"
+            className="relative inline-block py-2 text-base text-[#F4E9CD] after:absolute after:bottom-1 after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:bg-[#F4E9CD] after:transition-all after:duration-300 hover:after:w-[calc(100%-1rem)]"
+          >
             Cursos
-          </button>
+          </Link>
         </nav>
 
         {/* Botones de autenticación (derecha) */}
@@ -60,6 +64,7 @@ const PublicHeader = () => {
             alt="María Victoria Seoane"
             width={160}
             height={48}
+            style={{ height: 'auto' }}
           />
         </Link>
 

@@ -115,6 +115,7 @@ export default function HomePage() {
               src="/home/foto-cliente-sin -fondo.png"
               alt="María Victoria Seoane"
               fill
+              sizes="(max-width: 768px) 320px, 448px"
               className="object-contain"
             />
           </div>
