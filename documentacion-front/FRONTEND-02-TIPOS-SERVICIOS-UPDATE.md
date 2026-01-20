@@ -18,27 +18,41 @@ En esta fase vamos a:
 
 ```typescript
 export enum Role {
-  STUDENT = 'STUDENT',
-  TEACHER = 'TEACHER',
-  ADMIN = 'ADMIN',
   SUPER_ADMIN = 'SUPER_ADMIN',
+  OWNER = 'OWNER',
+  STUDENT = 'STUDENT',
 }
 
-export enum SubscriptionType {
-  FREE = 'FREE',
-  BASIC = 'BASIC',
-  PREMIUM = 'PREMIUM',
+export enum StudentStatus {
+  REGISTERED = 'REGISTERED',
+  IN_CART = 'IN_CART',
+  PENDING_PAYMENT = 'PENDING_PAYMENT',
+  PAID = 'PAID',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum AuthProvider {
+  LOCAL = 'LOCAL',
+  GOOGLE = 'GOOGLE',
 }
 
 export interface User {
   id: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
+  phone?: string | null;
+  dni?: string | null;
   role: Role;
+  studentStatus: StudentStatus;
+  authProvider: AuthProvider;
+  googleId?: string | null;
   birthDate?: string | null;
+  avatarUrl?: string | null;
+  isActive: boolean;
   emailVerified: boolean;
-  subscriptionType: SubscriptionType;
+  lastLoginAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,52 +63,58 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
-  firstName: string;
-  lastName: string;
   email: string;
   password: string;
-  confirmPassword: string;
-  birthDate?: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface UpdateProfileData {
   firstName?: string;
   lastName?: string;
-  birthDate?: string;
+  phone?: string;
+  avatarUrl?: string;
 }
 
 export interface ChangePasswordData {
   currentPassword: string;
   newPassword: string;
-  confirmNewPassword: string;
 }
 ```
 
 ### `src/types/course.ts`
 
 ```typescript
-export enum CourseLevel {
-  BEGINNER = 'BEGINNER',
-  INTERMEDIATE = 'INTERMEDIATE',
-  ADVANCED = 'ADVANCED',
-}
-
-export interface CourseCategory {
+export interface Category {
   id: string;
   name: string;
   slug: string;
   description?: string;
+  imageUrl?: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Lesson {
   id: string;
+  moduleId: string;
+  title: string;
+  description?: string;
+  duration?: number; // minutos
+  order: number;
+  isFree: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Module {
+  id: string;
   courseId: string;
   title: string;
   description?: string;
-  videoUrl: string;
-  duration: number; // en segundos
-  orderIndex: number;
-  isFree: boolean;
+  order: number;
+  lessons?: Lesson[];
   createdAt: string;
   updatedAt: string;
 }
@@ -103,80 +123,113 @@ export interface Course {
   id: string;
   title: string;
   slug: string;
-  description: string;
-  level: CourseLevel;
+  shortDescription: string;
+  longDescription: string;
   price: number;
-  thumbnail?: string;
-  videoPreview?: string;
-  duration: number; // duración total en segundos
-  categoryId: string;
-  category?: CourseCategory;
-  lessons?: Lesson[];
-  isActive: boolean;
+  discountPrice?: number;
+  thumbnailUrl?: string | null;
+  previewVideoUrl?: string | null;
+  duration?: number | null; // minutos
+  level?: string | null;
+  language: string;
+  isPublished: boolean;
+  isFeatured: boolean;
+  order: number;
+  categories?: Category[];
+  modules?: Module[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateCourseData {
   title: string;
-  description: string;
-  level: CourseLevel;
+  shortDescription: string;
+  longDescription: string;
   price: number;
-  categoryId: string;
-  thumbnail?: File;
-  videoPreview?: File;
+  discountPrice?: number;
+  thumbnailUrl?: string;
+  previewVideoUrl?: string;
+  duration?: number;
+  level?: string;
+  language?: string;
+  isPublished?: boolean;
+  isFeatured?: boolean;
+  order?: number;
+  categoryIds?: string[];
 }
 
 export interface UpdateCourseData {
   title?: string;
-  description?: string;
-  level?: CourseLevel;
+  shortDescription?: string;
+  longDescription?: string;
   price?: number;
-  categoryId?: string;
-  isActive?: boolean;
-  thumbnail?: File;
-  videoPreview?: File;
-}
-
-export interface CreateLessonData {
-  title: string;
-  description?: string;
-  orderIndex: number;
-  isFree: boolean;
-  video: File;
-}
-
-export interface UpdateLessonData {
-  title?: string;
-  description?: string;
-  orderIndex?: number;
-  isFree?: boolean;
-  video?: File;
+  discountPrice?: number;
+  thumbnailUrl?: string;
+  previewVideoUrl?: string;
+  duration?: number;
+  level?: string;
+  language?: string;
+  isPublished?: boolean;
+  isFeatured?: boolean;
+  order?: number;
+  categoryIds?: string[];
 }
 ```
 
 ### `src/types/cart.ts`
 
 ```typescript
-import { Course } from './course';
-
 export interface CartItem {
   id: string;
-  userId: string;
   courseId: string;
-  course?: Course;
+  courseTitle: string;
+  courseSlug: string;
+  courseThumbnail?: string;
+  price: number;
+  discountPrice?: number;
   addedAt: string;
+}
+
+export interface CartCoupon {
+  code: string;
+  type: string;
+  value: number;
+  discountAmount: number;
 }
 
 export interface Cart {
   items: CartItem[];
-  total: number;
-  discount: number;
+  itemCount: number;
   subtotal: number;
+  coupon?: CartCoupon;
+  discount: number;
+  total: number;
+  currency: string;
 }
 
 export interface AddToCartData {
   courseId: string;
+}
+
+export interface ApplyCouponData {
+  code: string;
+}
+
+export interface CartItemAddedResponse {
+  message: string;
+  item: CartItem;
+  cart: Cart;
+}
+
+export interface CartItemRemovedResponse {
+  message: string;
+  cart: Cart;
+}
+
+export interface CouponAppliedResponse {
+  message: string;
+  coupon: CartCoupon;
+  cart: Cart;
 }
 ```
 
@@ -185,18 +238,24 @@ export interface AddToCartData {
 ```typescript
 export enum CouponType {
   PERCENTAGE = 'PERCENTAGE',
-  FIXED_AMOUNT = 'FIXED_AMOUNT',
+  FIXED = 'FIXED',
 }
 
 export interface Coupon {
   id: string;
   code: string;
   type: CouponType;
-  discount: number;
-  expiresAt?: string | null;
-  usageLimit?: number | null;
-  usedCount: number;
+  value: number;
+  minPurchase?: number;
+  maxDiscount?: number;
+  maxUses?: number;
+  maxUsesPerUser: number;
+  currentUses: number;
+  validFrom: string;
+  validUntil?: string | null;
   isActive: boolean;
+  description?: string | null;
+  courses?: { id: string; title: string }[];
   createdAt: string;
   updatedAt: string;
 }
@@ -204,19 +263,45 @@ export interface Coupon {
 export interface CreateCouponData {
   code: string;
   type: CouponType;
-  discount: number;
-  expiresAt?: string;
-  usageLimit?: number;
+  value: number;
+  minPurchase?: number;
+  maxDiscount?: number;
+  maxUses?: number;
+  maxUsesPerUser?: number;
+  validFrom?: string;
+  validUntil?: string;
+  description?: string;
+  courseIds?: string[];
+}
+
+export interface UpdateCouponData {
+  code?: string;
+  type?: CouponType;
+  value?: number;
+  minPurchase?: number;
+  maxDiscount?: number;
+  maxUses?: number;
+  maxUsesPerUser?: number;
+  validFrom?: string;
+  validUntil?: string;
+  isActive?: boolean;
+  description?: string;
+  courseIds?: string[];
 }
 
 export interface ValidateCouponData {
   code: string;
-  total: number;
+  courseIds?: string[];
+  subtotal?: number;
 }
 
 export interface ValidateCouponResponse {
   valid: boolean;
-  discount: number;
+  code: string;
+  type: CouponType;
+  value: number;
+  maxDiscount?: number;
+  discountAmount?: number;
   message?: string;
 }
 ```
@@ -224,87 +309,108 @@ export interface ValidateCouponResponse {
 ### `src/types/order.ts`
 
 ```typescript
-import { Course } from './course';
-import { User } from './user';
-
 export enum OrderStatus {
   PENDING = 'PENDING',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
-}
-
-export enum PaymentMethod {
-  MERCADOPAGO = 'MERCADOPAGO',
+  REFUNDED = 'REFUNDED',
 }
 
 export interface OrderItem {
   id: string;
-  orderId: string;
   courseId: string;
-  course?: Course;
+  title: string;
   price: number;
-  createdAt: string;
+}
+
+export interface OrderPayment {
+  id: string;
+  status: OrderStatus;
+  amount: number;
+  paymentMethod?: string | null;
+  paymentType?: string | null;
+  installments?: number | null;
+  paidAt?: string | null;
+}
+
+export interface OrderUser {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
 }
 
 export interface Order {
   id: string;
   userId: string;
-  user?: User;
-  total: number;
-  discount: number;
-  finalAmount: number;
+  user?: OrderUser;
   status: OrderStatus;
-  paymentMethod: PaymentMethod;
-  mercadoPagoId?: string | null;
+  subtotal: number;
+  discountAmount: number;
+  total: number;
+  currency: string;
   couponCode?: string | null;
-  items?: OrderItem[];
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  customerDni?: string | null;
+  items: OrderItem[];
+  payment?: OrderPayment;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateOrderData {
-  couponCode?: string;
-}
-
-export interface MercadoPagoPreferenceResponse {
-  preferenceId: string;
-  initPoint: string;
+export interface OrderFilterParams {
+  status?: OrderStatus;
+  userId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  limit?: number;
 }
 ```
 
-### `src/types/enrollment.ts`
+### `src/types/checkout.ts`
 
 ```typescript
-import { Course } from './course';
-import { Lesson } from './course';
-
-export interface LessonProgress {
-  id: string;
-  enrollmentId: string;
-  lessonId: string;
-  lesson?: Lesson;
-  completed: boolean;
-  watchedDuration: number; // segundos vistos
-  completedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+export interface CheckoutData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  dni: string;
+  birthDate?: string;
+  couponCode?: string;
+  notes?: string;
 }
 
-export interface Enrollment {
-  id: string;
-  userId: string;
+export interface CheckoutSummaryItem {
   courseId: string;
-  course?: Course;
-  progress: number; // 0-100 porcentaje
-  enrolledAt: string;
-  completedAt?: string | null;
-  lessonProgress?: LessonProgress[];
+  title: string;
+  price: number;
 }
 
-export interface UpdateLessonProgressData {
-  lessonId: string;
-  watchedDuration: number;
-  completed: boolean;
+export interface CheckoutSummary {
+  items: CheckoutSummaryItem[];
+  itemCount: number;
+  subtotal: number;
+  discount: number;
+  couponCode?: string;
+  total: number;
+  currency: string;
+}
+
+export interface CheckoutResponse {
+  orderId: string;
+  paymentUrl: string;
+  preferenceId: string;
+  summary: CheckoutSummary;
+}
+
+export interface CheckoutValidationResponse {
+  valid: boolean;
+  canProceed: boolean;
+  errors?: string[];
+  summary?: CheckoutSummary;
 }
 ```
 
@@ -313,33 +419,74 @@ export interface UpdateLessonProgressData {
 ```typescript
 export interface EmailLog {
   id: string;
-  userId: string;
-  type: string;
-  subject: string;
   to: string;
-  status: 'sent' | 'failed';
-  sentAt: string;
+  type: EmailType;
+  subject: string;
+  status: EmailStatus;
+  sentAt?: string | null;
+  openedAt?: string | null;
+  clickedAt?: string | null;
   error?: string | null;
+  createdAt: string;
+}
+
+export interface EmailStats {
+  totalSent: number;
+  pending: number;
+  failed: number;
+  openRate: number;
+  clickRate: number;
+  byType: Record<string, number>;
+}
+
+export enum EmailType {
+  VERIFICATION = 'VERIFICATION',
+  WELCOME = 'WELCOME',
+  PURCHASE_CONFIRMED = 'PURCHASE_CONFIRMED',
+  COURSE_ACCESS = 'COURSE_ACCESS',
+  PASSWORD_RESET = 'PASSWORD_RESET',
+  ORDER_CANCELLED = 'ORDER_CANCELLED',
+  CART_ABANDONED_1H = 'CART_ABANDONED_1H',
+  CART_ABANDONED_24H = 'CART_ABANDONED_24H',
+  CART_ABANDONED_72H = 'CART_ABANDONED_72H',
+  NEW_COUPON = 'NEW_COUPON',
+  COUPON_EXPIRING = 'COUPON_EXPIRING',
+  BIRTHDAY = 'BIRTHDAY',
+  NEW_COURSE = 'NEW_COURSE',
+  RECOMPRA = 'RECOMPRA',
+  ADMIN_NEW_SALE = 'ADMIN_NEW_SALE',
+  ADMIN_NEW_USER = 'ADMIN_NEW_USER',
+  ADMIN_NEW_MESSAGE = 'ADMIN_NEW_MESSAGE',
+}
+
+export enum EmailStatus {
+  PENDING = 'PENDING',
+  SENT = 'SENT',
+  DELIVERED = 'DELIVERED',
+  OPENED = 'OPENED',
+  CLICKED = 'CLICKED',
+  FAILED = 'FAILED',
+  BOUNCED = 'BOUNCED',
 }
 
 export interface EmailConfig {
-  cartAbandonedEnabled: boolean;
-  birthdayEmailsEnabled: boolean;
   cartAbandoned1hHours: number;
   cartAbandoned24hHours: number;
   cartAbandoned72hHours: number;
   firstCouponDiscount: number;
   secondCouponDiscount: number;
+  cartAbandonedEnabled: boolean;
+  birthdayEmailsEnabled: boolean;
 }
 
 export interface UpdateEmailConfigData {
-  cartAbandonedEnabled?: boolean;
-  birthdayEmailsEnabled?: boolean;
   cartAbandoned1hHours?: number;
   cartAbandoned24hHours?: number;
   cartAbandoned72hHours?: number;
   firstCouponDiscount?: number;
   secondCouponDiscount?: number;
+  cartAbandonedEnabled?: boolean;
+  birthdayEmailsEnabled?: boolean;
 }
 ```
 
@@ -363,33 +510,14 @@ export interface PaginationParams {
   limit?: number;
 }
 
-export interface PaginationMeta {
+export interface PaginatedResponse<T> {
+  data: T[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: PaginationMeta;
-}
-
-export interface DashboardStats {
-  totalRevenue: number;
-  totalOrders: number;
-  totalStudents: number;
-  totalCourses: number;
-  revenueGrowth: number; // porcentaje
-  ordersGrowth: number;
-  studentsGrowth: number;
-}
-
-export interface SalesChartData {
-  date: string;
-  revenue: number;
-  orders: number;
-}
 ```
 
 ---
@@ -401,26 +529,25 @@ export interface SalesChartData {
 ```typescript
 import { z } from 'zod';
 
+const passwordSchema = z
+  .string()
+  .min(8, 'La contraseña debe tener al menos 8 caracteres')
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message:
+      'La contraseña debe contener al menos una mayúscula, una minúscula y un número',
+  });
+
 export const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  password: passwordSchema,
 });
 
-export const registerSchema = z
-  .object({
-    firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
-    email: z.string().email('Email inválido'),
-    password: z
-      .string()
-      .min(6, 'La contraseña debe tener al menos 6 caracteres'),
-    confirmPassword: z.string(),
-    birthDate: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Las contraseñas no coinciden',
-    path: ['confirmPassword'],
-  });
+export const registerSchema = z.object({
+  firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  lastName: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
+  email: z.string().email('Email inválido'),
+  password: passwordSchema,
+});
 
 export const updateProfileSchema = z.object({
   firstName: z
@@ -431,21 +558,14 @@ export const updateProfileSchema = z.object({
     .string()
     .min(2, 'El apellido debe tener al menos 2 caracteres')
     .optional(),
-  birthDate: z.string().optional(),
+  phone: z.string().optional(),
+  avatarUrl: z.string().url().optional(),
 });
 
-export const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Contraseña actual requerida'),
-    newPassword: z
-      .string()
-      .min(6, 'La contraseña debe tener al menos 6 caracteres'),
-    confirmNewPassword: z.string(),
-  })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: 'Las contraseñas no coinciden',
-    path: ['confirmNewPassword'],
-  });
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Contraseña actual requerida'),
+  newPassword: passwordSchema,
+});
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
@@ -457,33 +577,31 @@ export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 ```typescript
 import { z } from 'zod';
-import { CourseLevel } from '@/types/course';
-
 export const createCourseSchema = z.object({
   title: z.string().min(5, 'El título debe tener al menos 5 caracteres'),
-  description: z
+  shortDescription: z
     .string()
-    .min(20, 'La descripción debe tener al menos 20 caracteres'),
-  level: z.nativeEnum(CourseLevel),
+    .min(10, 'La descripción corta debe tener al menos 10 caracteres'),
+  longDescription: z
+    .string()
+    .min(50, 'La descripción larga debe tener al menos 50 caracteres'),
   price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
-  categoryId: z.string().min(1, 'Selecciona una categoría'),
+  discountPrice: z.number().min(0).optional(),
+  thumbnailUrl: z.string().url().optional(),
+  previewVideoUrl: z.string().url().optional(),
+  duration: z.number().min(0).optional(),
+  level: z.string().optional(),
+  language: z.string().optional(),
+  isPublished: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  order: z.number().min(0).optional(),
+  categoryIds: z.array(z.string()).optional(),
 });
 
 export const updateCourseSchema = createCourseSchema.partial();
 
-export const createLessonSchema = z.object({
-  title: z.string().min(3, 'El título debe tener al menos 3 caracteres'),
-  description: z.string().optional(),
-  orderIndex: z.number().min(0),
-  isFree: z.boolean(),
-});
-
-export const updateLessonSchema = createLessonSchema.partial();
-
 export type CreateCourseFormData = z.infer<typeof createCourseSchema>;
 export type UpdateCourseFormData = z.infer<typeof updateCourseSchema>;
-export type CreateLessonFormData = z.infer<typeof createLessonSchema>;
-export type UpdateLessonFormData = z.infer<typeof updateLessonSchema>;
 ```
 
 ### `src/lib/validations/coupon.ts`
@@ -499,9 +617,15 @@ export const createCouponSchema = z.object({
     .max(20, 'El código no puede tener más de 20 caracteres')
     .toUpperCase(),
   type: z.nativeEnum(CouponType),
-  discount: z.number().min(0, 'El descuento debe ser mayor o igual a 0'),
-  expiresAt: z.string().optional(),
-  usageLimit: z.number().min(1).optional(),
+  value: z.number().min(0, 'El descuento debe ser mayor o igual a 0'),
+  minPurchase: z.number().min(0).optional(),
+  maxDiscount: z.number().min(0).optional(),
+  maxUses: z.number().min(1).optional(),
+  maxUsesPerUser: z.number().min(1).optional(),
+  validFrom: z.string().optional(),
+  validUntil: z.string().optional(),
+  description: z.string().optional(),
+  courseIds: z.array(z.string()).optional(),
 });
 
 export const validateCouponSchema = z.object({
@@ -588,32 +712,35 @@ export const authService = {
   // Login
   login: async (
     credentials: LoginCredentials,
-  ): Promise<{ accessToken: string; user: User }> => {
+  ): Promise<{ accessToken: string; refreshToken: string; user: User }> => {
     const { data } = await apiClient.post<
-      ApiResponse<{ accessToken: string; user: User }>
+      ApiResponse<{ accessToken: string; refreshToken: string; user: User }>
     >('/auth/login', credentials);
     return data.data;
   },
 
   // Registro
-  register: async (userData: RegisterData): Promise<{ message: string }> => {
-    const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
-      '/auth/register',
-      userData,
-    );
+  register: async (
+    userData: RegisterData,
+  ): Promise<{ accessToken: string; refreshToken: string; user: User }> => {
+    const { data } = await apiClient.post<
+      ApiResponse<{ accessToken: string; refreshToken: string; user: User }>
+    >('/auth/register', userData);
     return data.data;
   },
 
   // Obtener perfil actual
   getProfile: async (): Promise<User> => {
-    const { data } = await apiClient.get<ApiResponse<User>>('/auth/profile');
-    return data.data;
+    const { data } = await apiClient.get<ApiResponse<{ user: User }>>(
+      '/auth/me',
+    );
+    return data.data.user;
   },
 
   // Actualizar perfil
   updateProfile: async (profileData: UpdateProfileData): Promise<User> => {
-    const { data } = await apiClient.patch<ApiResponse<User>>(
-      '/auth/profile',
+    const { data } = await apiClient.put<ApiResponse<User>>(
+      '/users/me',
       profileData,
     );
     return data.data;
@@ -623,7 +750,7 @@ export const authService = {
   changePassword: async (
     passwordData: ChangePasswordData,
   ): Promise<{ message: string }> => {
-    const { data } = await apiClient.patch<ApiResponse<{ message: string }>>(
+    const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
       '/auth/change-password',
       passwordData,
     );
@@ -641,7 +768,8 @@ export const authService = {
   // Verificar email
   verifyEmail: async (token: string): Promise<{ message: string }> => {
     const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
-      `/auth/verify-email/${token}`,
+      '/auth/verify-email',
+      { token },
     );
     return data.data;
   },
@@ -663,12 +791,9 @@ export const authService = {
 import { apiClient } from '@/lib/api';
 import {
   Course,
-  Lesson,
-  CourseCategory,
+  Category,
   CreateCourseData,
   UpdateCourseData,
-  CreateLessonData,
-  UpdateLessonData,
 } from '@/types/course';
 import { ApiResponse, PaginatedResponse, PaginationParams } from '@/types/api';
 
@@ -686,8 +811,10 @@ export const coursesService = {
   },
 
   // Obtener curso por ID (público)
-  getCourseById: async (id: string): Promise<Course> => {
-    const { data } = await apiClient.get<ApiResponse<Course>>(`/courses/${id}`);
+  getCourseById: async (id: string, includeModules?: boolean): Promise<Course> => {
+    const { data } = await apiClient.get<ApiResponse<Course>>(`/courses/${id}`, {
+      params: { includeModules },
+    });
     return data.data;
   },
 
@@ -699,60 +826,23 @@ export const coursesService = {
     return data.data;
   },
 
-  // Crear curso (ADMIN/TEACHER)
+  // Crear curso (SUPER_ADMIN/OWNER)
   createCourse: async (courseData: CreateCourseData): Promise<Course> => {
-    const formData = new FormData();
-    formData.append('title', courseData.title);
-    formData.append('description', courseData.description);
-    formData.append('level', courseData.level);
-    formData.append('price', courseData.price.toString());
-    formData.append('categoryId', courseData.categoryId);
-
-    if (courseData.thumbnail) {
-      formData.append('thumbnail', courseData.thumbnail);
-    }
-    if (courseData.videoPreview) {
-      formData.append('videoPreview', courseData.videoPreview);
-    }
-
     const { data } = await apiClient.post<ApiResponse<Course>>(
       '/courses',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      },
+      courseData,
     );
     return data.data;
   },
 
-  // Actualizar curso (ADMIN/TEACHER)
+  // Actualizar curso (SUPER_ADMIN/OWNER)
   updateCourse: async (
     id: string,
     courseData: UpdateCourseData,
   ): Promise<Course> => {
-    const formData = new FormData();
-
-    if (courseData.title) formData.append('title', courseData.title);
-    if (courseData.description)
-      formData.append('description', courseData.description);
-    if (courseData.level) formData.append('level', courseData.level);
-    if (courseData.price !== undefined)
-      formData.append('price', courseData.price.toString());
-    if (courseData.categoryId)
-      formData.append('categoryId', courseData.categoryId);
-    if (courseData.isActive !== undefined)
-      formData.append('isActive', courseData.isActive.toString());
-    if (courseData.thumbnail)
-      formData.append('thumbnail', courseData.thumbnail);
-    if (courseData.videoPreview)
-      formData.append('videoPreview', courseData.videoPreview);
-
-    const { data } = await apiClient.patch<ApiResponse<Course>>(
+    const { data } = await apiClient.put<ApiResponse<Course>>(
       `/courses/${id}`,
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      },
+      courseData,
     );
     return data.data;
   },
@@ -762,77 +852,53 @@ export const coursesService = {
     await apiClient.delete(`/courses/${id}`);
   },
 
-  // ===== LECCIONES =====
-
-  // Obtener lecciones de un curso
-  getCourseLessons: async (courseId: string): Promise<Lesson[]> => {
-    const { data } = await apiClient.get<ApiResponse<Lesson[]>>(
-      `/courses/${courseId}/lessons`,
-    );
-    return data.data;
-  },
-
-  // Crear lección (ADMIN/TEACHER)
-  createLesson: async (
-    courseId: string,
-    lessonData: CreateLessonData,
-  ): Promise<Lesson> => {
-    const formData = new FormData();
-    formData.append('title', lessonData.title);
-    if (lessonData.description)
-      formData.append('description', lessonData.description);
-    formData.append('orderIndex', lessonData.orderIndex.toString());
-    formData.append('isFree', lessonData.isFree.toString());
-    formData.append('video', lessonData.video);
-
-    const { data } = await apiClient.post<ApiResponse<Lesson>>(
-      `/courses/${courseId}/lessons`,
-      formData,
+  // Cursos destacados (público)
+  getFeaturedCourses: async (limit?: number): Promise<Course[]> => {
+    const { data } = await apiClient.get<ApiResponse<Course[]>>(
+      '/courses/featured',
       {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        params: { limit },
       },
     );
     return data.data;
   },
 
-  // Actualizar lección (ADMIN/TEACHER)
-  updateLesson: async (
-    courseId: string,
-    lessonId: string,
-    lessonData: UpdateLessonData,
-  ): Promise<Lesson> => {
-    const formData = new FormData();
-
-    if (lessonData.title) formData.append('title', lessonData.title);
-    if (lessonData.description)
-      formData.append('description', lessonData.description);
-    if (lessonData.orderIndex !== undefined)
-      formData.append('orderIndex', lessonData.orderIndex.toString());
-    if (lessonData.isFree !== undefined)
-      formData.append('isFree', lessonData.isFree.toString());
-    if (lessonData.video) formData.append('video', lessonData.video);
-
-    const { data } = await apiClient.patch<ApiResponse<Lesson>>(
-      `/courses/${courseId}/lessons/${lessonId}`,
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      },
+  // Publicar/Despublicar
+  togglePublish: async (id: string): Promise<Course> => {
+    const { data } = await apiClient.patch<ApiResponse<Course>>(
+      `/courses/${id}/toggle-publish`,
     );
     return data.data;
   },
 
-  // Eliminar lección (ADMIN/TEACHER)
-  deleteLesson: async (courseId: string, lessonId: string): Promise<void> => {
-    await apiClient.delete(`/courses/${courseId}/lessons/${lessonId}`);
+  // Destacar/Quitar destacado
+  toggleFeatured: async (id: string): Promise<Course> => {
+    const { data } = await apiClient.patch<ApiResponse<Course>>(
+      `/courses/${id}/toggle-featured`,
+    );
+    return data.data;
+  },
+
+  // Reordenar cursos
+  reorderCourses: async (orderedIds: string[]): Promise<{ message: string }> => {
+    const { data } = await apiClient.put<ApiResponse<{ message: string }>>(
+      '/courses/reorder/batch',
+      { orderedIds },
+    );
+    return data.data;
   },
 
   // ===== CATEGORÍAS =====
 
   // Obtener todas las categorías
-  getCategories: async (): Promise<CourseCategory[]> => {
-    const { data } =
-      await apiClient.get<ApiResponse<CourseCategory[]>>('/categories');
+  getCategories: async (params?: {
+    includeCoursesCount?: boolean;
+    onlyWithCourses?: boolean;
+  }): Promise<Category[]> => {
+    const { data } = await apiClient.get<ApiResponse<Category[]>>(
+      '/categories',
+      { params },
+    );
     return data.data;
   },
 };
@@ -846,7 +912,14 @@ export const coursesService = {
 
 ```typescript
 import { apiClient } from '@/lib/api';
-import { Cart, CartItem, AddToCartData } from '@/types/cart';
+import {
+  Cart,
+  CartItemAddedResponse,
+  CartItemRemovedResponse,
+  CouponAppliedResponse,
+  AddToCartData,
+  ApplyCouponData,
+} from '@/types/cart';
 import { ApiResponse } from '@/types/api';
 
 export const cartService = {
@@ -857,8 +930,8 @@ export const cartService = {
   },
 
   // Agregar curso al carrito
-  addToCart: async (cartData: AddToCartData): Promise<CartItem> => {
-    const { data } = await apiClient.post<ApiResponse<CartItem>>(
+  addToCart: async (cartData: AddToCartData): Promise<CartItemAddedResponse> => {
+    const { data } = await apiClient.post<ApiResponse<CartItemAddedResponse>>(
       '/cart',
       cartData,
     );
@@ -866,13 +939,36 @@ export const cartService = {
   },
 
   // Eliminar curso del carrito
-  removeFromCart: async (itemId: string): Promise<void> => {
-    await apiClient.delete(`/cart/${itemId}`);
+  removeFromCart: async (courseId: string): Promise<CartItemRemovedResponse> => {
+    const { data } = await apiClient.delete<ApiResponse<CartItemRemovedResponse>>(
+      `/cart/${courseId}`,
+    );
+    return data.data;
   },
 
   // Vaciar carrito
-  clearCart: async (): Promise<void> => {
-    await apiClient.delete('/cart');
+  clearCart: async (): Promise<Cart> => {
+    const { data } = await apiClient.delete<ApiResponse<Cart>>('/cart');
+    return data.data;
+  },
+
+  // Aplicar cupón
+  applyCoupon: async (
+    couponData: ApplyCouponData,
+  ): Promise<CouponAppliedResponse> => {
+    const { data } = await apiClient.post<ApiResponse<CouponAppliedResponse>>(
+      '/cart/apply-coupon',
+      couponData,
+    );
+    return data.data;
+  },
+
+  // Obtener cantidad de items
+  getCount: async (): Promise<{ count: number }> => {
+    const { data } = await apiClient.get<ApiResponse<{ count: number }>>(
+      '/cart/count',
+    );
+    return data.data;
   },
 };
 ```
@@ -881,17 +977,39 @@ export const cartService = {
 
 ```typescript
 import { apiClient } from '@/lib/api';
-import { CreateOrderData, MercadoPagoPreferenceResponse } from '@/types/order';
+import {
+  CheckoutData,
+  CheckoutSummary,
+  CheckoutValidationResponse,
+  CheckoutResponse,
+} from '@/types/checkout';
 import { ApiResponse } from '@/types/api';
 
 export const checkoutService = {
-  // Crear preferencia de MercadoPago
-  createMercadoPagoPreference: async (
-    orderData: CreateOrderData,
-  ): Promise<MercadoPagoPreferenceResponse> => {
+  // Obtener resumen de checkout
+  getSummary: async (): Promise<CheckoutSummary> => {
+    const { data } = await apiClient.get<ApiResponse<CheckoutSummary>>(
+      '/checkout/summary',
+    );
+    return data.data;
+  },
+
+  // Validar checkout
+  validateCheckout: async (
+    payload: { dni: string; phone: string },
+  ): Promise<CheckoutValidationResponse> => {
     const { data } = await apiClient.post<
-      ApiResponse<MercadoPagoPreferenceResponse>
-    >('/checkout/mercadopago/create-preference', orderData);
+      ApiResponse<CheckoutValidationResponse>
+    >('/checkout/validate', payload);
+    return data.data;
+  },
+
+  // Crear checkout
+  createCheckout: async (checkoutData: CheckoutData): Promise<CheckoutResponse> => {
+    const { data } = await apiClient.post<ApiResponse<CheckoutResponse>>(
+      '/checkout',
+      checkoutData,
+    );
     return data.data;
   },
 };
@@ -905,20 +1023,17 @@ export const checkoutService = {
 
 ```typescript
 import { apiClient } from '@/lib/api';
-import { Order } from '@/types/order';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '@/types/api';
+import { Order, OrderFilterParams } from '@/types/order';
+import { ApiResponse } from '@/types/api';
 
 export const ordersService = {
   // Obtener mis órdenes
   getMyOrders: async (
-    params?: PaginationParams,
-  ): Promise<PaginatedResponse<Order>> => {
-    const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Order>>>(
-      '/orders/my',
-      {
-        params,
-      },
-    );
+    params?: OrderFilterParams,
+  ): Promise<{ orders: Order[]; total: number; page: number; limit: number; totalPages: number }> => {
+    const { data } = await apiClient.get<
+      ApiResponse<{ orders: Order[]; total: number; page: number; limit: number; totalPages: number }>
+    >('/orders/my', { params });
     return data.data;
   },
 
@@ -928,16 +1043,41 @@ export const ordersService = {
     return data.data;
   },
 
+  // Cancelar orden
+  cancelOrder: async (id: string): Promise<Order> => {
+    const { data } = await apiClient.patch<ApiResponse<Order>>(
+      `/orders/${id}/cancel`,
+    );
+    return data.data;
+  },
+
   // Obtener todas las órdenes (ADMIN)
   getAllOrders: async (
-    params?: PaginationParams,
-  ): Promise<PaginatedResponse<Order>> => {
-    const { data } = await apiClient.get<ApiResponse<PaginatedResponse<Order>>>(
-      '/orders',
-      {
-        params,
-      },
-    );
+    params?: OrderFilterParams,
+  ): Promise<{ orders: Order[]; total: number; page: number; limit: number; totalPages: number }> => {
+    const { data } = await apiClient.get<
+      ApiResponse<{ orders: Order[]; total: number; page: number; limit: number; totalPages: number }>
+    >('/orders', { params });
+    return data.data;
+  },
+
+  // Estadísticas (ADMIN)
+  getStats: async (): Promise<{
+    totalOrders: number;
+    completedOrders: number;
+    pendingOrders: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+  }> => {
+    const { data } = await apiClient.get<
+      ApiResponse<{
+        totalOrders: number;
+        completedOrders: number;
+        pendingOrders: number;
+        totalRevenue: number;
+        averageOrderValue: number;
+      }>
+    >('/orders/admin/stats');
     return data.data;
   },
 };
@@ -954,6 +1094,7 @@ import { apiClient } from '@/lib/api';
 import {
   Coupon,
   CreateCouponData,
+  UpdateCouponData,
   ValidateCouponData,
   ValidateCouponResponse,
 } from '@/types/coupon';
@@ -972,8 +1113,10 @@ export const couponsService = {
   },
 
   // Obtener todos los cupones (ADMIN)
-  getAllCoupons: async (): Promise<Coupon[]> => {
-    const { data } = await apiClient.get<ApiResponse<Coupon[]>>('/coupons');
+  getAllCoupons: async (): Promise<{ coupons: Coupon[]; total: number }> => {
+    const { data } = await apiClient.get<
+      ApiResponse<{ coupons: Coupon[]; total: number }>
+    >('/coupons');
     return data.data;
   },
 
@@ -986,61 +1129,38 @@ export const couponsService = {
     return data.data;
   },
 
+  // Actualizar cupón (ADMIN)
+  updateCoupon: async (
+    id: string,
+    couponData: UpdateCouponData,
+  ): Promise<Coupon> => {
+    const { data } = await apiClient.put<ApiResponse<Coupon>>(
+      `/coupons/${id}`,
+      couponData,
+    );
+    return data.data;
+  },
+
   // Eliminar cupón (ADMIN)
   deleteCoupon: async (id: string): Promise<void> => {
     await apiClient.delete(`/coupons/${id}`);
   },
 
-  // Activar/Desactivar cupón (ADMIN)
-  toggleCoupon: async (id: string): Promise<Coupon> => {
-    const { data } = await apiClient.patch<ApiResponse<Coupon>>(
-      `/coupons/${id}/toggle`,
-    );
-    return data.data;
-  },
-};
-```
-
----
-
-## 9️⃣ Servicios de API - Enrollments
-
-### `src/services/enrollmentsService.ts`
-
-```typescript
-import { apiClient } from '@/lib/api';
-import {
-  Enrollment,
-  UpdateLessonProgressData,
-  LessonProgress,
-} from '@/types/enrollment';
-import { ApiResponse } from '@/types/api';
-
-export const enrollmentsService = {
-  // Obtener mis inscripciones
-  getMyEnrollments: async (): Promise<Enrollment[]> => {
-    const { data } =
-      await apiClient.get<ApiResponse<Enrollment[]>>('/enrollments/my');
-    return data.data;
-  },
-
-  // Obtener inscripción específica con progreso
-  getEnrollmentById: async (id: string): Promise<Enrollment> => {
-    const { data } = await apiClient.get<ApiResponse<Enrollment>>(
-      `/enrollments/${id}`,
-    );
-    return data.data;
-  },
-
-  // Actualizar progreso de lección
-  updateLessonProgress: async (
-    enrollmentId: string,
-    progressData: UpdateLessonProgressData,
-  ): Promise<LessonProgress> => {
-    const { data } = await apiClient.patch<ApiResponse<LessonProgress>>(
-      `/enrollments/${enrollmentId}/progress`,
-      progressData,
-    );
+  // Estadísticas (ADMIN)
+  getStats: async (): Promise<{
+    totalCoupons: number;
+    activeCoupons: number;
+    totalUses: number;
+    totalDiscount: number;
+  }> => {
+    const { data } = await apiClient.get<
+      ApiResponse<{
+        totalCoupons: number;
+        activeCoupons: number;
+        totalUses: number;
+        totalDiscount: number;
+      }>
+    >('/coupons/stats');
     return data.data;
   },
 };
@@ -1054,10 +1174,25 @@ export const enrollmentsService = {
 
 ```typescript
 import { apiClient } from '@/lib/api';
-import { User } from '@/types/user';
+import { User, UpdateProfileData } from '@/types/user';
 import { ApiResponse, PaginatedResponse, PaginationParams } from '@/types/api';
 
 export const usersService = {
+  // Obtener mi perfil
+  getMyProfile: async (): Promise<User> => {
+    const { data } = await apiClient.get<ApiResponse<User>>('/users/me');
+    return data.data;
+  },
+
+  // Actualizar mi perfil
+  updateMyProfile: async (payload: UpdateProfileData): Promise<User> => {
+    const { data } = await apiClient.put<ApiResponse<User>>(
+      '/users/me',
+      payload,
+    );
+    return data.data;
+  },
+
   // Obtener todos los usuarios (ADMIN)
   getAllUsers: async (
     params?: PaginationParams,
@@ -1079,7 +1214,7 @@ export const usersService = {
 
   // Actualizar rol de usuario (SUPER_ADMIN)
   updateUserRole: async (id: string, role: string): Promise<User> => {
-    const { data } = await apiClient.patch<ApiResponse<User>>(
+    const { data } = await apiClient.put<ApiResponse<User>>(
       `/users/${id}/role`,
       { role },
     );
@@ -1089,6 +1224,14 @@ export const usersService = {
   // Eliminar usuario (SUPER_ADMIN)
   deleteUser: async (id: string): Promise<void> => {
     await apiClient.delete(`/users/${id}`);
+  },
+
+  // Activar usuario (OWNER/SUPER_ADMIN)
+  activateUser: async (id: string): Promise<User> => {
+    const { data } = await apiClient.put<ApiResponse<User>>(
+      `/users/${id}/activate`,
+    );
+    return data.data;
   },
 };
 ```
@@ -1101,8 +1244,14 @@ export const usersService = {
 
 ```typescript
 import { apiClient } from '@/lib/api';
-import { EmailLog, EmailConfig, UpdateEmailConfigData } from '@/types/email';
-import { ApiResponse, PaginatedResponse, PaginationParams } from '@/types/api';
+import {
+  EmailLog,
+  EmailStats,
+  EmailConfig,
+  UpdateEmailConfigData,
+  EmailType,
+} from '@/types/email';
+import { ApiResponse, PaginationParams, PaginatedResponse } from '@/types/api';
 
 export const emailsService = {
   // Obtener logs de emails (ADMIN)
@@ -1114,6 +1263,21 @@ export const emailsService = {
     >('/emails/logs', {
       params,
     });
+    return data.data;
+  },
+
+  // Obtener estadísticas de emails (ADMIN)
+  getEmailStats: async (): Promise<EmailStats> => {
+    const { data } = await apiClient.get<ApiResponse<EmailStats>>('/emails/stats');
+    return data.data;
+  },
+
+  // Enviar email de prueba (ADMIN)
+  sendTestEmail: async (payload: { to: string; type: EmailType }) => {
+    const { data } = await apiClient.post<ApiResponse<any>>(
+      '/emails/test',
+      payload,
+    );
     return data.data;
   },
 
@@ -1139,36 +1303,6 @@ export const emailsService = {
 ```
 
 ---
-
-## 1️⃣2️⃣ Servicios de API - Dashboard (Admin)
-
-### `src/services/dashboardService.ts`
-
-```typescript
-import { apiClient } from '@/lib/api';
-import { DashboardStats, SalesChartData } from '@/types/api';
-import { ApiResponse } from '@/types/api';
-
-export const dashboardService = {
-  // Obtener estadísticas del dashboard (ADMIN)
-  getStats: async (): Promise<DashboardStats> => {
-    const { data } =
-      await apiClient.get<ApiResponse<DashboardStats>>('/dashboard/stats');
-    return data.data;
-  },
-
-  // Obtener datos de ventas para gráficos (ADMIN)
-  getSalesData: async (days: number = 30): Promise<SalesChartData[]> => {
-    const { data } = await apiClient.get<ApiResponse<SalesChartData[]>>(
-      '/dashboard/sales',
-      {
-        params: { days },
-      },
-    );
-    return data.data;
-  },
-};
-```
 
 ---
 
@@ -1268,9 +1402,9 @@ Verificar que todos los archivos estén creados:
 - [ ] `src/types/cart.ts`
 - [ ] `src/types/coupon.ts`
 - [ ] `src/types/order.ts`
-- [ ] `src/types/enrollment.ts`
 - [ ] `src/types/email.ts`
 - [ ] `src/types/api.ts`
+- [ ] `src/types/checkout.ts`
 
 ### Validaciones Zod
 
@@ -1286,10 +1420,8 @@ Verificar que todos los archivos estén creados:
 - [ ] `src/services/checkoutService.ts`
 - [ ] `src/services/ordersService.ts`
 - [ ] `src/services/couponsService.ts`
-- [ ] `src/services/enrollmentsService.ts`
 - [ ] `src/services/usersService.ts`
 - [ ] `src/services/emailsService.ts`
-- [ ] `src/services/dashboardService.ts`
 
 ### Configuración
 
@@ -1319,7 +1451,7 @@ En esta fase hemos creado:
 
 1. **8 archivos de tipos TypeScript** con todas las interfaces del proyecto
 2. **3 archivos de validación Zod** para formularios
-3. **10 servicios de API** con métodos completos para comunicación con el backend
+3. **8 servicios de API** con métodos completos para comunicación con el backend
 4. **Configuración de React Query** para manejo de estado del servidor
 5. **Sistema de manejo de errores** centralizado
 6. **Cliente HTTP Axios** con interceptores
