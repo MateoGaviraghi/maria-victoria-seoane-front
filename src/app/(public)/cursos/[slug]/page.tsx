@@ -75,7 +75,12 @@ export default function CoursePage({ params }: CoursePageProps) {
                 </span>
               </div>
             )}
-            <h1 className="mb-4 text-4xl font-bold text-[#F4E9CD] md:text-5xl">{course.title}</h1>
+            <h1
+              className="mb-4 text-4xl font-semibold text-[#F4E9CD] md:text-5xl lg:text-6xl"
+              style={{ fontFamily: 'var(--font-playfair)' }}
+            >
+              {course.title}
+            </h1>
             <p className="text-lg text-[#9DBEBB]">{course.shortDescription}</p>
           </div>
         </div>
@@ -88,7 +93,12 @@ export default function CoursePage({ params }: CoursePageProps) {
           <div className="lg:col-span-2">
             {/* Descripción */}
             <div className="mb-8 bg-white p-8 shadow-sm">
-              <h2 className="mb-4 text-2xl font-bold text-[#031926]">Descripción del Curso</h2>
+              <h2
+                className="mb-4 text-2xl font-semibold text-[#031926]"
+                style={{ fontFamily: 'var(--font-playfair)' }}
+              >
+                Descripción del Curso
+              </h2>
               <p className="leading-relaxed whitespace-pre-line text-[#468189]">
                 {course.longDescription}
               </p>
@@ -97,7 +107,10 @@ export default function CoursePage({ params }: CoursePageProps) {
             {/* Video de presentación */}
             {course.previewVideoUrl && (
               <div className="mb-8 bg-white p-8 shadow-sm">
-                <h2 className="mb-4 flex items-center gap-2 text-2xl font-bold text-[#031926]">
+                <h2
+                  className="mb-4 flex items-center gap-2 text-2xl font-semibold text-[#031926]"
+                  style={{ fontFamily: 'var(--font-playfair)' }}
+                >
                   <PlayCircle className="h-6 w-6 text-[#77ACA2]" />
                   Video de Presentación
                 </h2>
@@ -117,7 +130,10 @@ export default function CoursePage({ params }: CoursePageProps) {
             {/* Módulos y lecciones */}
             {course.modules && course.modules.length > 0 && (
               <div className="bg-white p-8 shadow-sm">
-                <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold text-[#031926]">
+                <h2
+                  className="mb-6 flex items-center gap-2 text-2xl font-semibold text-[#031926]"
+                  style={{ fontFamily: 'var(--font-playfair)' }}
+                >
                   <BookOpen className="h-6 w-6 text-[#77ACA2]" />
                   Contenido del Curso
                 </h2>
@@ -150,19 +166,6 @@ export default function CoursePage({ params }: CoursePageProps) {
           {/* Sidebar - Información y CTA */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 bg-white p-8 shadow-lg">
-              <div className="mb-6 text-center">
-                <div className="mb-2 text-4xl font-bold text-[#031926]">
-                  {formatCurrency(course.price)}
-                </div>
-                {course.level && (
-                  <div className="inline-block bg-[#031926] px-4 py-1.5">
-                    <span className="text-xs font-semibold tracking-wider text-[#F4E9CD] uppercase">
-                      Nivel: {course.level}
-                    </span>
-                  </div>
-                )}
-              </div>
-
               <Button
                 className="mb-6 w-full bg-[#77ACA2] py-6 text-base font-semibold text-[#031926] hover:bg-[#468189] hover:text-[#F4E9CD]"
                 size="lg"
@@ -171,7 +174,7 @@ export default function CoursePage({ params }: CoursePageProps) {
               </Button>
 
               {/* Información del curso */}
-              <div className="space-y-4 border-t border-[#F4E9CD] pt-6">
+              <div className="mb-6 space-y-4">
                 <div className="flex items-center gap-3 text-[#468189]">
                   <Clock className="h-5 w-5 text-[#77ACA2]" />
                   <div>
@@ -204,7 +207,7 @@ export default function CoursePage({ params }: CoursePageProps) {
               </div>
 
               {/* Características adicionales */}
-              <div className="mt-6 space-y-2 border-t border-[#F4E9CD] pt-6">
+              <div className="space-y-3 border-t border-[#F4E9CD] pt-6">
                 <div className="flex items-start gap-2 text-sm text-[#468189]">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#77ACA2]" />
                   <span>Acceso de por vida</span>
@@ -216,6 +219,22 @@ export default function CoursePage({ params }: CoursePageProps) {
                 <div className="flex items-start gap-2 text-sm text-[#468189]">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#77ACA2]" />
                   <span>Soporte del instructor</span>
+                </div>
+              </div>
+
+              {/* Precio y nivel al final */}
+              <div className="mt-6 border-t border-[#F4E9CD] pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="text-2xl font-bold text-[#031926]">
+                    {formatCurrency(course.price)}
+                  </div>
+                  {course.level && (
+                    <div className="inline-block bg-[#031926] px-3 py-1">
+                      <span className="text-xs font-medium text-[#F4E9CD] uppercase">
+                        {course.level}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

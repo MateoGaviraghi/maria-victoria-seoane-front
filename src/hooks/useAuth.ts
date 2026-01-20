@@ -45,7 +45,7 @@ export const useAuth = () => {
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['profile'],
     queryFn: () => authService.getProfile(),
-    enabled: !!user,
+    enabled: false, // Deshabilitado temporalmente para evitar loops
     retry: false,
   });
 

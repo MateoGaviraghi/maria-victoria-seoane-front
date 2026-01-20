@@ -40,20 +40,23 @@ export default function HomePage() {
         <div className="relative z-10 container">
           <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
             <div className="ml-0 max-w-2xl px-4 md:ml-8">
-              <h1 className="mb-4 text-3xl font-bold tracking-tight text-[#F4E9CD] md:text-4xl lg:text-5xl">
-                Curso de Oratoria y Media Training
+              <h1
+                className="mb-4 text-4xl font-semibold tracking-tight text-[#F4E9CD] md:text-5xl lg:text-6xl"
+                style={{ fontFamily: 'var(--font-playfair)' }}
+              >
+                Curso de <span className="italic">Oratoria</span> y Media Training
               </h1>
-              <p className="mb-6 text-base text-[#F4E9CD]/90 md:text-lg">
+              <p className="mb-6 text-base leading-relaxed text-[#F4E9CD]/90 md:text-lg">
                 Este curso ha sido diseñado para ayudarte a desarrollar habilidades efectivas de
                 comunicación verbal y no verbal, así como también mejorar tu capacidad de
                 presentación en público y manejo de los medios de comunicación.
               </p>
-              <p className="mb-8 hidden text-lg text-[#F4E9CD]/90 md:block">
+              <p className="mb-8 hidden text-lg leading-relaxed text-[#F4E9CD]/90 md:block">
                 Durante el curso, aprenderás técnicas para vencer el miedo escénico, comunicar con
                 claridad y persuasión, utilizar tu lenguaje corporal de manera efectiva, entre otros
                 aspectos esenciales para lograr una excelente presentación en público.
               </p>
-              <Button className="bg-[#77ACA2] text-[#031926] hover:bg-[#9DBEBB]" asChild>
+              <Button size="lg" className="bg-[#77ACA2] text-[#031926] hover:bg-[#9DBEBB]" asChild>
                 <Link href="/cursos" className="flex items-center gap-2">
                   Quiero el curso
                   <ArrowRight className="h-4 w-4" />
@@ -76,11 +79,16 @@ export default function HomePage() {
       </section>
 
       {/* Para quién es este curso */}
-      <section className="bg-[#F4E9CD] py-16">
+      <section className="bg-[#F4E9CD] py-16 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="mb-12 text-center">
-            <h2 className="text-4xl font-bold">Para quién es este curso</h2>
-            <p className="mt-3 text-lg text-[#468189]">
+            <h2
+              className="text-center text-4xl font-semibold text-balance lg:text-5xl"
+              style={{ fontFamily: 'var(--font-playfair)' }}
+            >
+              Para quién es <span className="italic">este curso</span>
+            </h2>
+            <p className="mt-4 text-lg text-[#468189]">
               Registrate y accede a todos los cursos disponibles.
             </p>
           </div>
@@ -108,7 +116,7 @@ export default function HomePage() {
       </section>
 
       {/* Conoce a la cliente */}
-      <section className="bg-[#9DBEBB] py-16">
+      <section className="bg-[#9DBEBB] py-16 lg:py-24">
         <div className="container grid gap-10 px-4 md:grid-cols-2 md:items-center">
           <div className="relative mx-auto flex aspect-4/5 w-full max-w-xs overflow-hidden md:max-w-md">
             <Image
@@ -120,20 +128,27 @@ export default function HomePage() {
             />
           </div>
           <div className="px-4 md:px-0">
-            <div className="mb-3 inline-block rounded-full bg-[#031926] px-3 py-1 text-xs font-semibold text-[#F4E9CD]">
+            <div className="mb-4 inline-block rounded-full bg-[#031926] px-4 py-1.5 text-xs font-medium text-[#F4E9CD]">
               APRENDE SOBRE CÓMO COMUNICARTE
             </div>
-            <h2 className="mb-4 text-2xl font-bold text-[#031926] md:text-3xl">
-              Curso de oratoria y media training.
+            <h2
+              className="mb-6 text-3xl font-semibold text-[#031926] md:text-4xl"
+              style={{ fontFamily: 'var(--font-playfair)' }}
+            >
+              Curso de <span className="italic">oratoria</span> y media training.
             </h2>
-            <p className="text-sm text-[#031926] md:text-base">
+            <p className="text-base leading-relaxed text-[#031926] md:text-lg">
               La docente María Victoria Seoane tiene 20 años de experiencia en el sector. Sostiene
               que la oratoria y el entrenamiento para hablar en público o en redes sociales son
               clave para los candidatos y funcionarios políticos. Todo lo que decimos con nuestro
               cuerpo es esencial a quienes nos escuchan y ven nuestro contenido, aprender a
               demostrar y enviar las señales adecuadas a nuestro público es muy importante.
             </p>
-            <Button className="mt-6 bg-[#031926] text-[#F4E9CD] hover:bg-[#468189]" asChild>
+            <Button
+              size="lg"
+              className="mt-8 bg-[#031926] text-[#F4E9CD] hover:bg-[#468189]"
+              asChild
+            >
               <Link href="/cursos">Quiero el curso</Link>
             </Button>
           </div>

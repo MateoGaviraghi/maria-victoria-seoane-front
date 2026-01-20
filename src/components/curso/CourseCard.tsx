@@ -62,7 +62,10 @@ const CourseCard = ({ course }: CourseCardProps) => {
         )}
 
         <Link href={`/cursos/${course.slug}`}>
-          <h3 className="mb-3 line-clamp-2 text-xl font-bold text-[#031926] transition-colors group-hover:text-[#77ACA2]">
+          <h3
+            className="mb-3 line-clamp-2 text-xl font-semibold text-[#031926] transition-colors group-hover:text-[#77ACA2]"
+            style={{ fontFamily: 'var(--font-playfair)' }}
+          >
             {course.title}
           </h3>
         </Link>

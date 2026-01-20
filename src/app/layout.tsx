@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Abril_Fatface, Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Playfair_Display } from 'next/font/google';
 import { Providers } from '@/components/providers';
 import './globals.css';
 
@@ -13,9 +13,10 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const abrilFatface = Abril_Fatface({
-  variable: '--font-abril',
-  weight: '400',
+const playfairDisplay = Playfair_Display({
+  variable: '--font-playfair',
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
   subsets: ['latin'],
 });
 
@@ -45,7 +46,7 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${abrilFatface.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} antialiased`}
       >
         <Providers>{children}</Providers>
       </body>

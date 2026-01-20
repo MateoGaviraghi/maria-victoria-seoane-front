@@ -32,14 +32,18 @@ export default function CoursesPage() {
   return (
     <div className="min-h-screen bg-[#F4E9CD]">
       {/* Hero Section */}
-      <div className="bg-[#F4E9CD] py-16">
+      <div className="bg-[#F4E9CD] py-16 lg:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <h1 className="mb-3 text-4xl font-bold text-[#031926] md:text-5xl">
-              Catálogo de Cursos
+            <h1
+              className="mb-4 text-4xl font-semibold text-balance text-[#031926] md:text-5xl lg:text-6xl"
+              style={{ fontFamily: 'var(--font-playfair)' }}
+            >
+              <span className="italic">Catálogo</span> de Cursos
             </h1>
-            <p className="mx-auto max-w-2xl text-lg text-[#468189]">
-              Encuentra el curso perfecto para ti
+            <p className="mx-auto max-w-2xl text-lg leading-relaxed text-[#468189]">
+              Encuentra el curso perfecto para ti y empieza a construir tu carrera como
+              desarrollador
             </p>
           </div>
         </div>
