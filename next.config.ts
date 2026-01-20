@@ -16,11 +16,18 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '*.onrender.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'example.com',
         pathname: '/**',
       },
     ],
   },
+  // Configuración para producción
+  output: 'standalone',
 };
 
 export default nextConfig;
