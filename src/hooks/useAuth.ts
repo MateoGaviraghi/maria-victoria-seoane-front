@@ -23,7 +23,7 @@ export const useAuth = () => {
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken, data.refreshToken);
       toast.success('Inicio de sesión exitoso');
-      router.push('/dashboard');
+      router.push('/cursos');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -32,10 +32,10 @@ export const useAuth = () => {
 
   const registerMutation = useMutation({
     mutationFn: (userData: RegisterData) => authService.register(userData),
-    onSuccess: (data) => {
-      setAuth(data.user, data.accessToken, data.refreshToken);
+    onSuccess: () => {
+      // NO autenticamos al usuario hasta que verifique su email
       toast.success('Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.');
-      router.push('/dashboard');
+      router.push('/auth/verify-email');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error));
@@ -92,6 +92,28 @@ export const useAuth = () => {
     },
   });
 
+  const requestPasswordResetMutation = useMutation({
+    mutationFn: (email: string) => authService.requestPasswordReset(email),
+    onSuccess: () => {
+      toast.success('Se ha enviado un email con las instrucciones');
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
+      authService.resetPassword(token, newPassword),
+    onSuccess: () => {
+      toast.success('Contraseña restablecida exitosamente');
+      router.push('/auth/login');
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error));
+    },
+  });
+
   const logout = () => {
     authService.logout();
     storeLogout();
@@ -117,6 +139,10 @@ export const useAuth = () => {
     isResendingVerification: resendVerificationMutation.isPending,
     verifyEmail: verifyEmailMutation.mutate,
     isVerifyingEmail: verifyEmailMutation.isPending,
+    requestPasswordReset: requestPasswordResetMutation.mutate,
+    isRequestingPasswordReset: requestPasswordResetMutation.isPending,
+    resetPassword: resetPasswordMutation.mutate,
+    isResettingPassword: resetPasswordMutation.isPending,
     logout,
   };
 };

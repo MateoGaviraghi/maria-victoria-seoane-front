@@ -3,11 +3,20 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ShoppingCart, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const PublicHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 bg-[#031926] text-[#F4E9CD]">
@@ -37,18 +46,66 @@ const PublicHeader = () => {
           </Link>
         </nav>
 
-        {/* Botones de autenticación (derecha) */}
+        {/* Botones de autenticación o usuario autenticado (derecha) */}
         <div className="ml-auto flex shrink-0 items-center gap-3 pl-6">
-          <Button
-            variant="ghost"
-            className="text-sm text-[#F4E9CD] hover:bg-[#F4E9CD]/10 hover:text-[#77ACA2]"
-            asChild
-          >
-            <Link href="/auth/login">Iniciar sesión</Link>
-          </Button>
-          <Button className="bg-[#77ACA2] text-sm text-[#031926] hover:bg-[#9DBEBB]" asChild>
-            <Link href="/auth/register">Registrarse</Link>
-          </Button>
+          {user ? (
+            <>
+              {/* Carrito */}
+              <Link
+                href="/carrito"
+                className="relative p-2 text-[#F4E9CD] transition-colors hover:text-[#77ACA2]"
+              >
+                <ShoppingCart className="h-5 w-5" />
+              </Link>
+
+              {/* Dropdown del usuario */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded px-3 py-2 text-sm font-medium text-[#F4E9CD] transition-colors hover:bg-[#F4E9CD]/10">
+                    <User className="h-4 w-4" />
+                    <span>
+                      {user.firstName} {user.lastName}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-white">
+                  <DropdownMenuItem asChild>
+                    <Link href="/carrito" className="flex cursor-pointer items-center gap-2">
+                      <ShoppingCart className="h-4 w-4" />
+                      <span>Carrito</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/cursos" className="flex cursor-pointer items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>Cursos</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="flex cursor-pointer items-center gap-2 text-red-600"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Cerrar Sesión</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                className="text-sm text-[#F4E9CD] hover:bg-[#F4E9CD]/10 hover:text-[#77ACA2]"
+                asChild
+              >
+                <Link href="/auth/login">Iniciar sesión</Link>
+              </Button>
+              <Button className="bg-[#77ACA2] text-sm text-[#031926] hover:bg-[#9DBEBB]" asChild>
+                <Link href="/auth/register">Registrarse</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -89,20 +146,53 @@ const PublicHeader = () => {
             >
               Cursos
             </Link>
-            <Link
-              href="/auth/login"
-              className="text-center text-base text-[#F4E9CD] transition-colors hover:text-[#77ACA2]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              href="/auth/register"
-              className="mx-auto w-full max-w-xs rounded bg-[#77ACA2] px-4 py-2 text-center text-sm font-medium text-[#031926] transition-colors hover:bg-[#9DBEBB]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Registrarse
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  href="/carrito"
+                  className="text-center text-base text-[#F4E9CD] transition-colors hover:text-[#77ACA2]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Carrito
+                </Link>
+                <Link
+                  href="/cursos"
+                  className="text-center text-base text-[#F4E9CD] transition-colors hover:text-[#77ACA2]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Cursos
+                </Link>
+                <div className="text-center text-sm text-[#9DBEBB]">
+                  {user.firstName} {user.lastName}
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="mx-auto w-full max-w-xs rounded bg-red-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-red-700"
+                >
+                  Cerrar Sesión
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="text-center text-base text-[#F4E9CD] transition-colors hover:text-[#77ACA2]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Iniciar sesión
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="mx-auto w-full max-w-xs rounded bg-[#77ACA2] px-4 py-2 text-center text-sm font-medium text-[#031926] transition-colors hover:bg-[#9DBEBB]"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Registrarse
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       )}
