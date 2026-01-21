@@ -26,8 +26,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Configuración para producción
-  output: 'standalone',
 };
 
 export default nextConfig;
